@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Projection Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e);
+            color: #fafafa;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            space-y: 24px;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #a855f7, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: #94a3b8;
+        }
+
+        .card {
+            background: linear-gradient(145deg, #1e1e2e, #252540);
+            border: 1px solid #374151;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
+            margin-bottom: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.15);
+        }
+
+        .card-header {
+            padding: 24px 24px 0;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #a855f7;
+            margin-bottom: 8px;
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .input {
+            padding: 12px 16px;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            color: #fafafa;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .input-hint {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .metric-card {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .metric-info h3 {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+
+        .metric-info p {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .primary-gradient {
+            background: linear-gradient(135deg, #a855f7, #c084fc);
+        }
+
+        .accent-gradient {
+            background: linear-gradient(135deg, #059669, #10b981);
+        }
+
+        .primary-text {
+            color: #a855f7;
+        }
+
+        .accent-text {
+            color: #10b981;
+        }
+
+        .chart-container {
+            height: 320px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-content {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Data Projection Dashboard</h1>
+            <p>Interactive analytics and projections for your checkout system</p>
+        </div>
+
+        <!-- Input Controls -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">System Parameters</h2>
+            </div>
+            <div class="card-content">
+                <div class="grid grid-3">
+                    <div class="input-group">
+                        <label class="input-label">Checkout Opens / Day</label>
+                        <input type="number" id="checkouts" class="input" value="140000">
+                        <span class="input-hint">130k live + 10k sandbox</span>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Events / Checkout</label>
+                        <input type="number" id="eventsPerCheckout" class="input" value="50">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Record Size (Bytes)</label>
+                        <input type="number" id="recordSize" class="input" value="500">
+                        <span class="input-hint">Payload + metadata</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-4">
+            <div class="card">
+                <div class="metric-card">
+                    <div class="metric-info">
+                        <h3>Events / Second</h3>
+                        <p class="primary-text" id="eventsPerSecond">100</p>
+                    </div>
+                    <div class="metric-icon primary-gradient">⚡</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="metric-card">
+                    <div class="metric-info">
+                        <h3>Events / Day</h3>
+                        <p class="accent-text" id="eventsPerDay">7.0M</p>
+                    </div>
+                    <div class="metric-icon accent-gradient">📊</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="metric-card">
+                    <div class="metric-info">
+                        <h3>Total Size / Day</h3>
+                        <p class="primary-text" id="totalSize">3.5GB</p>
+                    </div>
+                    <div class="metric-icon primary-gradient">💾</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="metric-card">
+                    <div class="metric-info">
+                        <h3>Throughput</h3>
+                        <p class="accent-text" id="throughput">6K /min</p>
+                    </div>
+                    <div class="metric-icon accent-gradient">🚀</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projection Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">30-Day Growth Projection</h2>
+                <p style="color: #94a3b8; font-size: 0.875rem;">Projected growth assuming 2% daily increase</p>
+            </div>
+            <div class="card-content">
+                <div class="chart-container">
+                    <canvas id="projectionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data management
+        let currentData = {
+            checkoutOpensPerDay: 140000,
+            eventsPerCheckout: 50,
+            recordSize: 500,
+            eventsPerSecond: 100,
+            eventsPerDay: 7000000,
+            totalSizePerDay: 3.5
+        };
+
+        let chart;
+
+        // Utility functions
+        function formatNumber(num) {
+            if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+            if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+            return num.toString();
+        }
+
+        function calculateDependentValues() {
+            currentData.eventsPerDay = currentData.checkoutOpensPerDay * currentData.eventsPerCheckout;
+            currentData.eventsPerSecond = Math.floor(currentData.eventsPerDay / (24 * 60 * 60));
+            currentData.totalSizePerDay = parseFloat(((currentData.eventsPerDay * currentData.recordSize) / (1024 * 1024 * 1024)).toFixed(2));
+        }
+
+        function updateMetrics() {
+            document.getElementById('eventsPerSecond').textContent = formatNumber(currentData.eventsPerSecond);
+            document.getElementById('eventsPerDay').textContent = formatNumber(currentData.eventsPerDay);
+            document.getElementById('totalSize').textContent = `${currentData.totalSizePerDay}GB`;
+            document.getElementById('throughput').textContent = `${formatNumber(currentData.eventsPerSecond * 60)} /min`;
+        }
+
+        function generateProjectionData() {
+            const projections = [];
+            for (let day = 1; day <= 30; day++) {
+                const dailyGrowth = 1 + (day * 0.02);
+                projections.push({
+                    day,
+                    events: Math.floor(currentData.eventsPerDay * dailyGrowth),
+                    size: parseFloat((currentData.totalSizePerDay * dailyGrowth).toFixed(2))
+                });
+            }
+            return projections;
+        }
+
+        function updateChart() {
+            const projectionData = generateProjectionData();
+            
+            if (chart) {
+                chart.data.labels = projectionData.map(d => `Day ${d.day}`);
+                chart.data.datasets[0].data = projectionData.map(d => d.events);
+                chart.data.datasets[1].data = projectionData.map(d => d.size * 1000000); // Scale for visibility
+                chart.update();
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('projectionChart').getContext('2d');
+            const projectionData = generateProjectionData();
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: projectionData.map(d => `Day ${d.day}`),
+                    datasets: [
+                        {
+                            label: 'Events/Day',
+                            data: projectionData.map(d => d.events),
+                            borderColor: '#a855f7',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Size (GB × 1M)',
+                            data: projectionData.map(d => d.size * 1000000),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: false,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(148, 163, 184, 0.1)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return (value / 1000000).toFixed(1) + 'GB';
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            document.getElementById('checkouts').addEventListener('input', (e) => {
+                currentData.checkoutOpensPerDay = parseFloat(e.target.value) || 0;
+                calculateDependentValues();
+                updateMetrics();
+                updateChart();
+            });
+
+            document.getElementById('eventsPerCheckout').addEventListener('input', (e) => {
+                currentData.eventsPerCheckout = parseFloat(e.target.value) || 0;
+                calculateDependentValues();
+                updateMetrics();
+                updateChart();
+            });
+
+            document.getElementById('recordSize').addEventListener('input', (e) => {
+                currentData.recordSize = parseFloat(e.target.value) || 0;
+                calculateDependentValues();
+                updateMetrics();
+                updateChart();
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            calculateDependentValues();
+            updateMetrics();
+            initChart();
+            setupEventListeners();
+        });
+    </script>
+</body>
+</html>
